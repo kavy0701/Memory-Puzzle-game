@@ -32,6 +32,9 @@ class Option:
 pygame.init()
 screen = pygame.display.set_mode((640,480))
 
+BACKGROUND = pygame.image.load('xyz.png')
+
+
 font_color = (255, 255, 250)
 font_obj = pygame.font.Font("C:\Windows\Fonts\segoeprb.ttf",30)
 
@@ -52,17 +55,50 @@ while True:
             if 285 <= mouse[0] and 340 <= mouse[1]: 
                 pygame.quit() 
                 sys.exit() 
+                
             elif 235 <= mouse[0] and 265 <= mouse[1]:
                 screen1 = pygame.display.set_mode((640,480))
-                while True:
+                BACKGROUND = pygame.image.load('xyz.png')
+                
+                run = True    
+                while run:
+                    mouse = pygame.mouse.get_pos()
+                    mouseClicked = False
+
                     for event in pygame.event.get():
                         if event.type==pygame.QUIT:
                             pygame.quit()
                             sys.exit()
-                    screen1.fill((0,0,0))
+                        elif event.type == pygame.MOUSEBUTTONDOWN:
+                            if 570 <= mouse[0] and 13 <= mouse[1]: 
+                                run = False
+                            
+                                
+                    
+                    # screen1.fill((0,0,0))
+                    screen1.blit(BACKGROUND, [0, 0])
+                        
+
+                    font_color = (255, 255, 250)
+                    font_obj = pygame.font.Font("C:\Windows\Fonts\segoeprb.ttf",30)
+                    font = pygame.font.Font("C:\Windows\Fonts\segoeprb.ttf",20)
+                    back = font.render("back",True,(255,255,255))
+                    screen1.blit(back, (570,13))
+
+                       
+                    with open("highscore.txt", "r") as f:
+                        highscore = f.read()
+                    text=font_obj.render("High Score: " + str(highscore),True,font_color)
+                        
+                        
+                    screen1.blit(text,(230, 200))
+                        
+                    
                     pygame.display.update()
+                    
+                    
 
-
+                    
 
             elif 245 <= mouse[0] and 185 <= mouse[1]:
                 import random, pygame, sys
@@ -97,8 +133,12 @@ while True:
 
 
                 ICON = pygame.image.load('icon.png')
-                BACKGROUND_IMAGE = pygame.image.load('BGG.png')
+                BACKGROUND_IMAGE = pygame.image.load('xyz.png')
+                
+                image = pygame.image.load('back.png')
+                back = pygame.transform.scale(image,(50,30))
 
+                
 
                 BGCOLOR = NAVYBLUE
                 LIGHTBGCOLOR = GRAY
@@ -117,6 +157,8 @@ while True:
                 ALLSHAPES = (DONUT, SQUARE, DIAMOND, LINES, OVAL)
                 assert len(ALLCOLORS) * len(ALLSHAPES) * 2 >= BOARD_WIDTH * BOARD_HEIGHT, "Board is too big for the number of shapes/colors defined."
 
+                
+
 
                 def main():
                     global FPSCLOCK, DISPLAY_SURFACE
@@ -127,7 +169,13 @@ while True:
                     clock = pygame.time.Clock()
                     font = pygame.freetype.SysFont(None, 25)
                     font.origin = True
+
                     
+                    fon = pygame.font.Font("C:\Windows\Fonts\ARLRDBD.ttf", 20)
+                    
+                    with open("highscore.txt", "r") as f:
+                        highscore = f.read()
+
                     score_value = 0
                     
                     font_obj = pygame.font.Font("C:\Windows\Fonts\ARLRDBD.ttf", 25) 
@@ -145,27 +193,35 @@ while True:
                     DISPLAY_SURFACE.blit(BACKGROUND_IMAGE, [0, 0])
                     startGameAnimation(mainBoard)
     
+                    run = True
+                    while run: # main game loop
 
-                    while True: # main game loop
+                        mouse = pygame.mouse.get_pos()
                         mouseClicked = False
                         DISPLAY_SURFACE.blit(BACKGROUND_IMAGE, [0, 0])
-                        
+                        # DISPLAY_SURFACE.blit(back, [580, 10])
+
+
                         drawBoard(mainBoard, revealedBoxes)
 
                         text_obj = font_obj.render("Score: "+ str(score_value), True, (255, 255, 255))
                         DISPLAY_SURFACE.blit(text_obj, (70, 12))
 
+                        back = fon.render("back",True,(255,255,255))
+                        DISPLAY_SURFACE.blit(back, (570,13))
+
                         ticks = pygame.time.get_ticks()
                         seconds = int(ticks/1000 % 60)
                         minutes = int(ticks/60000 % 24)
                         out = '{minutes:02d}:{seconds:02d}'.format(minutes = minutes, seconds = seconds)
-                        font.render_to(DISPLAY_SURFACE, (500, 35), out, pygame.Color('white'))
+                        font.render_to(DISPLAY_SURFACE, (480, 35), out, pygame.Color('white'))
                         pygame.display.flip()
                         clock.tick(60)
 
 
                         for event in pygame.event.get(): # event handling loop
                             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
+                                
                                 pygame.quit()
                                 sys.exit()
                             elif event.type == MOUSEMOTION:
@@ -173,6 +229,10 @@ while True:
                             elif event.type == MOUSEBUTTONUP:
                                 mousex, mousey = event.pos
                                 mouseClicked = True
+                            
+                            elif event.type == pygame.MOUSEBUTTONDOWN:
+                                if 570 <= mouse[0] and 13 <= mouse[1]: 
+                                    run = False
 
                         boxx, boxy = getBoxAtPixel(mousex, mousey)
                         if boxx != None and boxy != None:
@@ -185,6 +245,16 @@ while True:
                                 if firstSelection == None: # the current box was the first box clicked
                                     firstSelection = (boxx, boxy)
                                     score_value += 1
+                                    
+                                    with open("highscore.txt", "w") as f:
+                                        f.write(str(highscore))
+                                        if score_value > int(highscore):
+                                            highscore = score_value
+                                        
+                                        
+
+
+
                                 else: # the current box was the second box clicked
                                     # Check if there is a match between the two icons.
                                     icon1shape, icon1color = getShapeAndColor(mainBoard, firstSelection[0], firstSelection[1])
@@ -197,6 +267,7 @@ while True:
                                         revealedBoxes[firstSelection[0]][firstSelection[1]] = False
                                         revealedBoxes[boxx][boxy] = False
                                         score_value -=1
+                                        
                                     elif hasWon(revealedBoxes): # check if all pairs found
                                         gameWonAnimation(mainBoard)
                                         pygame.time.wait(2000)
@@ -214,6 +285,7 @@ while True:
                                         startGameAnimation(mainBoard)
                                     firstSelection = None # reset firstSelection variable
 
+                        
                         # Redraw the screen and wait a clock tick.
                         pygame.display.update()
                         FPSCLOCK.tick(FPS)
@@ -355,7 +427,7 @@ while True:
                         for y in range(BOARD_HEIGHT):
                             boxes.append( (x, y) )
                     random.shuffle(boxes)
-                    boxGroups = splitIntoGroupsOf(8, boxes)
+                    boxGroups = splitIntoGroupsOf(10, boxes)
 
                     drawBoard(board, coveredBoxes)
                     for boxGroup in boxGroups:
@@ -391,7 +463,9 @@ while True:
 
 
     pygame.event.pump()
-    screen.fill((0, 0, 0))
+    screen.blit(BACKGROUND, [0, 0])
+
+    # screen.fill((0, 0, 0))
     screen .blit(text_obj,(120, 40))
     
     for option in options:
